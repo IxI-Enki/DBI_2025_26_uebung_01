@@ -1,0 +1,56 @@
+{
+  "type": "school_repo_management_memory",
+  "version": 1,
+  "createdAt": "2025-09-25T20:34:36.2463009Z",
+  "local": {
+    "rootPath": "D:\\_Repositories\\year_2025_26\\DBI_2025_26\\dbi_uebung_01",
+    "os": "windows",
+    "defaultBranch": "main"
+  },
+  "github": {
+    "owner": "IxI-Enki",
+    "repo": "DBI_2025_26_uebung_01",
+    "remoteUrl": "git@github.com:IxI-Enki/DBI_2025_26_uebung_01.git"
+  },
+  "subject": {
+    "code": "DBI",
+    "name": "Datenbanken und Informationssysteme",
+    "schoolYear": "2025/26",
+    "exercise": {
+      "name": "Übung 01 – Star-Schema Bibliothek",
+      "number": "1",
+      "dueDate": "2025-09-30"
+    }
+  },
+  "structure": {
+    "paths": [
+      "README.md",
+      "angabe/moodle_angabe.md",
+      "quellen/",
+      "docs/",
+      "sql/"
+    ],
+    "templates": {
+      "readme": "yaml-frontmatter+sections",
+      "moodle_angabe": "task+files+related+moodle_link"
+    }
+  },
+  "sources": {
+    "documents": [
+      "quellen/*"
+    ],
+    "links": [
+      "https://edufs.edu.htl-leonding.ac.at/moodle/mod/assign/view.php?id=213382"
+    ]
+  },
+  "automation": {
+    "cadence": "weekly",
+    "tasks": [
+      "validate-structure",
+      "check-deadlines",
+      "sync-remote",
+      "update-indexes",
+      "link-health-check"
+    ]
+  }
+}
