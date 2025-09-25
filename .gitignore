@@ -1,0 +1,28 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Daten
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.tmp
+*.log
+
+# Umwelt
+.env
+.env.*
