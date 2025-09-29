@@ -1,16 +1,27 @@
-DROP TABLE DIM_LIBRARY;
-DROP TABLE DIM_BOOK;
-DROP TABLE DIM_TIME;
-DROP TABLE DIM_PATRON;
-DROP TABLE FACT_LEND;
+-- Safe drop in dependency order: FACT first, then mappings, then dimensions, then sequence
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE FACT_LEND'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PATRON_DIM_ID'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LIBRARY_DIM_ID'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE DIM_LIBRARY'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE DIM_BOOK'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE DIM_TIME'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE DIM_PATRON'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE DIM_SEQ'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
 
 -- Dimensionstabellen:
 CREATE TABLE DIM_BOOK(ID NUMBER PRIMARY KEY, TITLE VARCHAR(32) NOT NULL, RATING NUMBER, author VARCHAR(32));
 CREATE TABLE DIM_TIME(id NUMBER PRIMARY KEY, year NUMBER, month NUMBER, day NUMBER);
 CREATE TABLE DIM_PATRON(id NUMBER PRIMARY KEY, LAST_NAME VARCHAR(32), CITY VARCHAR(32) NOT NULL, STATE VARCHAR(32) NOT NULL);
 
-CREATE TABLE FACT_LEND(t NUMBER REFERENCES DIM_TIME(id), lib NUMBER REFERENCES DIM_LIBRARY(id),
-                        book NUMBER REFERENCES DIM_BOOK(id), patron REFERENCES DIM_PATRON(id), costs NUMBER, duration NUMBER, PRIMARY KEY(t, lib, book, patron));
+-- FACT_LEND wird erst später erzeugt (nachdem DIM_LIBRARY existiert) – siehe sql/03_fact_lend_load.sql
 
 CREATE SEQUENCE DIM_SEQ START WITH 1;
 
@@ -42,9 +53,19 @@ SELECT (SELECT db.id FROM DIM_BOOK db WHERE db.title=b.title AND db.author=a.las
 -- b.) Temporaere Tabelle, welche die Zuordnung ID der Input-Daten zu ID der Dimension enthält.
 -- z.B: 
 -- Erstellen einer temporaeren Tabelle, welche exakt wie die eigentliche Dimensionstabelle aussieht + die "alte" ID der Ausgangsdaten beinhaltet:
-CREATE TABLE PATRON_DIM_ID AS (SELECT dim_seq.nextval AS id_dim, p.patron_id AS id_alt, p.last_name, l.city, l.state FROM PATRONS p JOIN locations l ON (p.location_id = l.location_id));
+CREATE TABLE PATRON_DIM_ID AS (
+  SELECT dim_seq.nextval AS id_dim,
+         p.patron_id     AS id_alt,
+         p.last_name,
+         l.city,
+         l.state
+    FROM PATRONS p
+    JOIN locations l ON (p.location_id = l.location_id)
+);
 -- Daraus dann die eigentliche Dimensionstabelle erzeugen:
-INSERT INTO DIM_PATRON (SELECT id_dim, last_name, city, state FROM PATRON_DIM_ID);
+INSERT INTO DIM_PATRON (id, last_name, city, state)
+SELECT id_dim, last_name, city, state
+FROM PATRON_DIM_ID;
 
 -- beim Aufloesen der Dimensions-ID kann dann einfach in dieser Tabelle nachgeschlagen werden.
 SELECT (SELECT pd.id_dim FROM PATRON_DIM_ID pd WHERE pd.id_alt = t.patron_id) as dim_patron_id, t.costs, t.duration FROM TRANSACTIONS t;

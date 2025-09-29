@@ -45,11 +45,66 @@ erstellen Dimensionen und Faktentabellen und leiten Analyseabfragen ab.
 ## Entity-Relation-Diagramm der initialen Bibliothek
 
 ```mermaid
-<generate>
+erDiagram
+  LOCATIONS {
+    NUMBER location_id PK
+    VARCHAR2 city
+    VARCHAR2 state
+    VARCHAR2 zip_code
+  }
+
+  LIBRARY {
+    NUMBER library_id PK
+    VARCHAR2 name
+    NUMBER location_id FK
+  }
+
+  AUTHORS {
+    NUMBER author_id PK
+    VARCHAR2 last_name
+    VARCHAR2 first_name
+    DATE birthdate
+  }
+
+  BOOKS {
+    VARCHAR2 book_id PK
+    VARCHAR2 title
+    NUMBER author_id FK
+    NUMBER rating
+  }
+
+  PATRONS {
+    NUMBER patron_id PK
+    VARCHAR2 last_name
+    VARCHAR2 first_name
+    VARCHAR2 street_address
+    NUMBER location_id FK
+  }
+
+  TRANSACTIONS {
+    NUMBER transaction_id PK
+    NUMBER patron_id FK
+    VARCHAR2 book_id FK
+    DATE transaction_date
+    NUMBER transaction_type
+    NUMBER costs
+    NUMBER duration
+    NUMBER library_id FK
+  }
+
+  LIBRARY }o--|| LOCATIONS : located_at
+  PATRONS }o--|| LOCATIONS : lives_in
+  BOOKS }o--|| AUTHORS : written_by
+  TRANSACTIONS }o--|| PATRONS : involves
+  TRANSACTIONS }o--|| BOOKS : includes
+  TRANSACTIONS }o--|| LIBRARY : at
 ```
 
 ---
 
+
+
+<!--
 ## Abgabehinweise
 
 - Diagramme als Bild/Markdown einbinden
@@ -65,3 +120,4 @@ erstellen Dimensionen und Faktentabellen und leiten Analyseabfragen ab.
   - `angaben/` Aufgabenstellung/Material
   - `docs/` Relevante Dokumente aus dem Unterricht
   - `sql/` Optional DDL/Abfragen
+-->
