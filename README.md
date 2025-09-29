@@ -10,27 +10,58 @@ moodle_link: "https://edufs.edu.htl-leonding.ac.at/moodle/mod/assign/view.php?id
 due_date: "2025-09-30-00:00"
 ---
 
-Kurzbeschreibung: In dieser Übung modellieren Sie ein Star-Schema für eine Bibliothek, erstellen    Dimensionen und Faktentabellen und leiten Analyseabfragen ab.
+In dieser Übung modellieren Sie ein Star-Schema für eine Bibliothek,
+erstellen Dimensionen und Faktentabellen und leiten Analyseabfragen ab.
 
 ## Aufgabenüberblick
 
-[Angabe - Moodle](angabe/moodle_angabe.md)
+| Angabe:   |
+| :-------- |
+| 🌐 Link zur [Aufgabe auf Moodle](https://edufs.edu.htl-leonding.ac.at/moodle/mod/assign/view.php?id=213382) |
+| 📄Fetched [`angabe/moodle_angabe.md`](angabe/moodle_angabe.md) |
+
+> ## *Star-Schema Bibliothek*
+>
+> > **Geöffnet**: Mittwoch, 17. September 2025, 00:00
+> > **Fällig**: Dienstag, 30. September 2025, 00:00
+>
+> > Überführen Sie das gegebene OLTP-Schema in ein Star-Schema.
+> >
+> > 1. Ergänzen Sie den Code der Stunde um die Bibliotheks-Dimension DIM_LIBRARY
+> >
+> > 2. Befüllen Sie diese Dimension mit Werten
+> >
+> > 3. Befüllen Sie die Faktentabelle FACT_LEND, indem Sie mittels SubQuery
+> >    zu jeder Dimension den passenden Foreign-Key finden, sowie Primary-Key & Measures ergänzen.
+> >
+> > *Nutzen Sie dabei die bereits in der Stunde ausgearbeiteten Statements als Ausgangsbasis*:
+> >
+> > **↳** [📄 `stunde_star_schema_bibliothek.sql`](docs/stunde_star_schema_bibliothek.sql)
+> > **↳** [📄 `library_schema.sql`](angabe/library_schema.sql)  <!--17. September 2025, 16:39-->
+>
+
+---
+
+## Entity-Relation-Diagramm der initialen Bibliothek
+
+```mermaid
+<generate>
+```
+
+---
 
 ## Abgabehinweise
 
-- Abgabe als Git-Repository mit sauberer Historie
 - Diagramme als Bild/Markdown einbinden
-- Artefakte knapp dokumentieren
+- Abgabe als Git-Repository mit sauberer Historie
 
-## Git-Workflow (Empfehlung)
+  ### Git-Workflow (Empfehlung)
+  
+  - `main` stabil halten; Feature-Branches für Teilaufgaben
+  - Aussagekräftige Commits in kleinen Schritten
 
-- `main` stabil halten; Feature-Branches für Teilaufgaben
-- Aussagekräftige Commits in kleinen Schritten
+  ### Struktur
 
-## Struktur
-
-- `angaben/` Aufgabenstellung/Material
-- `docs/` Diagramme und Erläuterungen
-- `sql/` Optional DDL/Abfragen
-
-Viel Erfolg!
+  - `angaben/` Aufgabenstellung/Material
+  - `docs/` Relevante Dokumente aus dem Unterricht
+  - `sql/` Optional DDL/Abfragen
