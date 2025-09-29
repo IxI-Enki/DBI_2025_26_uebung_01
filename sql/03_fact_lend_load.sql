@@ -128,6 +128,7 @@ JOIN BOOK_MAP bm
  AND bm.author = a.last_name;
 
 COMMIT;
+/
 
 -- Optionale Kontrolle: Anzahl Faktzeilen
 -- SELECT COUNT(*) AS fact_lend_count FROM FACT_LEND;
