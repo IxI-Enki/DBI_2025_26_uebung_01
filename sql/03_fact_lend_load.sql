@@ -16,20 +16,42 @@
 
 -- Sicherstellen, dass FACT_LEND existiert (erst nach vorhandenen Dimensionen)
 DECLARE
-  v_exists NUMBER;
+  v_exists   NUMBER;
+  v_attempts NUMBER := 0;
 BEGIN
-  SELECT COUNT(*) INTO v_exists FROM user_tables WHERE table_name = 'FACT_LEND';
-  IF v_exists = 0 THEN
-    EXECUTE IMMEDIATE 'CREATE TABLE FACT_LEND(
-      t      NUMBER REFERENCES DIM_TIME(id),
-      lib    NUMBER REFERENCES DIM_LIBRARY(id),
-      book   NUMBER REFERENCES DIM_BOOK(id),
-      patron NUMBER REFERENCES DIM_PATRON(id),
-      costs  NUMBER,
-      duration NUMBER,
-      PRIMARY KEY(t, lib, book, patron)
-    )';
-  END IF;
+  LOOP
+    SELECT COUNT(*) INTO v_exists FROM user_tables WHERE table_name = 'FACT_LEND';
+    IF v_exists = 0 THEN
+      BEGIN
+        EXECUTE IMMEDIATE 'CREATE TABLE FACT_LEND(
+          t      NUMBER REFERENCES DIM_TIME(id),
+          lib    NUMBER REFERENCES DIM_LIBRARY(id),
+          book   NUMBER REFERENCES DIM_BOOK(id),
+          patron NUMBER REFERENCES DIM_PATRON(id),
+          costs  NUMBER,
+          duration NUMBER,
+          PRIMARY KEY(t, lib, book, patron)
+        )';
+        EXIT;
+      EXCEPTION
+        WHEN OTHERS THEN
+          IF SQLCODE = -955 THEN
+            EXIT; -- already exists
+          ELSIF SQLCODE = -54 THEN
+            v_attempts := v_attempts + 1;
+            IF v_attempts < 5 THEN
+              DBMS_LOCK.SLEEP(0.5);
+            ELSE
+              RAISE;
+            END IF;
+          ELSE
+            RAISE;
+          END IF;
+      END;
+    ELSE
+      EXIT;
+    END IF;
+  END LOOP;
 END;
 /
 
@@ -95,17 +117,7 @@ COMMIT;
 --     patron -> DIM_PATRON.ID per Mappingtabelle PATRON_DIM_ID
 --     costs, duration -> direkt aus TRANSACTIONS
 --
--- Verwende CTEs, um je Geschäftsschlüssel einen stabilen Dimensionsschlüssel zu wählen
-WITH TIME_MAP AS (
-  SELECT year, month, day, MIN(id) AS id
-  FROM DIM_TIME
-  GROUP BY year, month, day
-),
-BOOK_MAP AS (
-  SELECT title, author, MIN(id) AS id
-  FROM DIM_BOOK
-  GROUP BY title, author
-)
+-- Kein WITH-CTE (Kompatibilität zu Tools): nutze Inline-Subqueries
 INSERT INTO FACT_LEND (t, lib, book, patron, costs, duration)
 SELECT
   tm.id                      AS t,
@@ -117,13 +129,21 @@ SELECT
 FROM TRANSACTIONS tr
 JOIN BOOKS b    ON b.book_id   = tr.book_id
 JOIN AUTHORS a  ON a.author_id = b.author_id
-JOIN TIME_MAP tm
+JOIN (
+  SELECT year, month, day, MIN(id) AS id
+  FROM DIM_TIME
+  GROUP BY year, month, day
+) tm
   ON tm.year  = EXTRACT(YEAR  FROM tr.transaction_date)
  AND tm.month = EXTRACT(MONTH FROM tr.transaction_date)
  AND tm.day   = EXTRACT(DAY   FROM tr.transaction_date)
 JOIN LIBRARY_DIM_ID ldm ON ldm.id_alt = tr.library_id
 JOIN PATRON_DIM_ID  pd  ON pd.id_alt  = tr.patron_id
-JOIN BOOK_MAP bm
+JOIN (
+  SELECT title, author, MIN(id) AS id
+  FROM DIM_BOOK
+  GROUP BY title, author
+) bm
   ON bm.title  = b.title
  AND bm.author = a.last_name;
 
