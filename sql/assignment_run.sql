@@ -22,11 +22,13 @@ BEGIN
   EXECUTE IMMEDIATE 'DROP TABLE DIM_LIBRARY';
 EXCEPTION WHEN OTHERS THEN NULL; -- Tabelle existierte evtl. noch nicht
 END;
+/
 
 BEGIN
   EXECUTE IMMEDIATE 'DROP SEQUENCE DIM_LIBRARY_SEQ';
 EXCEPTION WHEN OTHERS THEN NULL; -- Sequenz existierte evtl. noch nicht
 END;
+/
 
 -----
 
@@ -41,7 +43,7 @@ CREATE TABLE DIM_LIBRARY (
 
 -- Sequenz für Surrogat-Schlüssel der Dimension
 CREATE SEQUENCE DIM_LIBRARY_SEQ START WITH 1 INCREMENT BY 1 NOCACHE;
-
+/
 ----------------------------------------------------------------------------------------------------
 
 -- 2. Dimension DIM_LIBRARY mit Werten befüllen
@@ -49,6 +51,7 @@ CREATE SEQUENCE DIM_LIBRARY_SEQ START WITH 1 INCREMENT BY 1 NOCACHE;
 -- Doppelte Ausführung vermeiden: Lösche bestehende Einträge (idempotent).
 DELETE FROM DIM_LIBRARY;
 COMMIT;
+/
 
 INSERT INTO DIM_LIBRARY (ID, LIBRARY_NAME, CITY, STATE, ZIP_CODE)
 SELECT
@@ -61,6 +64,7 @@ FROM LIBRARY l
 JOIN LOCATIONS loc ON loc.location_id = l.location_id;
 
 COMMIT;
+/
 
 ----------------------------------------------------------------------------------------------------
 
@@ -85,6 +89,7 @@ JOIN DIM_PATRON dp
  AND dp.city      = l.city
  AND dp.state     = l.state
 GROUP BY p.patron_id;
+
 
 -- Hilfstabelle: Zuordnung LIBRARY (OLTP-ID) -> DIM_LIBRARY.ID
 BEGIN
@@ -115,6 +120,7 @@ EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 COMMIT;
+/
 
 -- Befüllung FACT_LEND
 --   Für jede Zeile aus TRANSACTIONS ermitteln wir:
@@ -153,3 +159,4 @@ JOIN (
  AND bm.author = a.last_name;
 
 COMMIT;
+/

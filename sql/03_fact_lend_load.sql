@@ -54,7 +54,7 @@ JOIN DIM_PATRON dp
  AND dp.city      = l.city
  AND dp.state     = l.state
 GROUP BY p.patron_id;
-/
+
 
 -- Hilfstabelle: Zuordnung LIBRARY (OLTP-ID) -> DIM_LIBRARY.ID
 BEGIN
@@ -76,7 +76,6 @@ JOIN DIM_LIBRARY dl
  AND dl.STATE        = loc.state
  AND dl.ZIP_CODE     = loc.zip_code
 GROUP BY lib.library_id;
-/
 
 -- Idempotenz: FACT_LEND leeren, damit das Skript mehrfach ausführbar ist
 BEGIN
@@ -85,6 +84,7 @@ EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
 COMMIT;
+/
 
 --
 -- Befüllung FACT_LEND
