@@ -109,9 +109,12 @@ GROUP BY lib.library_id;
 
 
 -- Idempotenz: FACT_LEND leeren, damit das Skript mehrfach ausführbar ist
-DELETE FROM FACT_LEND;
-COMMIT;
+BEGIN
+  EXECUTE IMMEDIATE 'DELETE FROM FACT_LEND';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
 /
+COMMIT;
 
 -- Befüllung FACT_LEND
 --   Für jede Zeile aus TRANSACTIONS ermitteln wir:
@@ -120,16 +123,6 @@ COMMIT;
 --     book -> DIM_BOOK.ID über Titel + Autor (Nachname)
 --     patron -> DIM_PATRON.ID per Mappingtabelle PATRON_DIM_ID
 --     costs, duration -> direkt aus TRANSACTIONS
-WITH TIME_MAP AS (
-  SELECT year, month, day, MIN(id) AS id
-  FROM DIM_TIME
-  GROUP BY year, month, day
-),
-BOOK_MAP AS (
-  SELECT title, author, MIN(id) AS id
-  FROM DIM_BOOK
-  GROUP BY title, author
-)
 INSERT INTO FACT_LEND (t, lib, book, patron, costs, duration)
 SELECT
   tm.id                      AS t,
@@ -141,13 +134,21 @@ SELECT
 FROM TRANSACTIONS tr
 JOIN BOOKS b    ON b.book_id   = tr.book_id
 JOIN AUTHORS a  ON a.author_id = b.author_id
-JOIN TIME_MAP tm
+JOIN (
+  SELECT year, month, day, MIN(id) AS id
+  FROM DIM_TIME
+  GROUP BY year, month, day
+) tm
   ON tm.year  = EXTRACT(YEAR  FROM tr.transaction_date)
  AND tm.month = EXTRACT(MONTH FROM tr.transaction_date)
  AND tm.day   = EXTRACT(DAY   FROM tr.transaction_date)
 JOIN LIBRARY_DIM_ID ldm ON ldm.id_alt = tr.library_id
 JOIN PATRON_DIM_ID  pd  ON pd.id_alt  = tr.patron_id
-JOIN BOOK_MAP bm
+JOIN (
+  SELECT title, author, MIN(id) AS id
+  FROM DIM_BOOK
+  GROUP BY title, author
+) bm
   ON bm.title  = b.title
  AND bm.author = a.last_name;
 

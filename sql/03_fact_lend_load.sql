@@ -11,8 +11,27 @@
 -- Voraussetzungen:
 --   - DIM_TIME, DIM_BOOK, DIM_PATRON existieren und sind befüllt (vgl. Unterrichtsskript)
 --   - DIM_LIBRARY existiert und ist befüllt (siehe 01_ und 02_-Skripte)
---   - FACT_LEND ist angelegt (vgl. Unterrichtsskript docs/stunde_star_schema_bibliothek.sql)
+--   - FACT_LEND wird bei Bedarf in diesem Skript erstellt
 --
+
+-- Sicherstellen, dass FACT_LEND existiert (erst nach vorhandenen Dimensionen)
+DECLARE
+  v_exists NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO v_exists FROM user_tables WHERE table_name = 'FACT_LEND';
+  IF v_exists = 0 THEN
+    EXECUTE IMMEDIATE 'CREATE TABLE FACT_LEND(
+      t      NUMBER REFERENCES DIM_TIME(id),
+      lib    NUMBER REFERENCES DIM_LIBRARY(id),
+      book   NUMBER REFERENCES DIM_BOOK(id),
+      patron NUMBER REFERENCES DIM_PATRON(id),
+      costs  NUMBER,
+      duration NUMBER,
+      PRIMARY KEY(t, lib, book, patron)
+    )';
+  END IF;
+END;
+/
 
 -- Hilfstabelle: Zuordnung PATRON (OLTP-ID) -> DIM_PATRON.ID
 --   Wir bauen die Mappingtabelle über Übereinstimmung von LAST_NAME, CITY, STATE auf.
@@ -60,7 +79,11 @@ GROUP BY lib.library_id;
 /
 
 -- Idempotenz: FACT_LEND leeren, damit das Skript mehrfach ausführbar ist
-DELETE FROM FACT_LEND;
+BEGIN
+  EXECUTE IMMEDIATE 'DELETE FROM FACT_LEND';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
 COMMIT;
 
 --
