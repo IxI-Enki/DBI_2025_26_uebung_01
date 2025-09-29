@@ -29,6 +29,7 @@ FROM LIBRARY l
 JOIN LOCATIONS loc ON loc.location_id = l.location_id;
 
 COMMIT;
+/
 
 -- Validierung (optional): Anzahl geladener Bibliotheken anzeigen
 -- SELECT COUNT(*) AS dim_library_count FROM DIM_LIBRARY;

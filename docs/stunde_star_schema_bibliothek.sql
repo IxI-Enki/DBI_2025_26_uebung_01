@@ -75,3 +75,6 @@ SELECT (SELECT pd.id_dim FROM PATRON_DIM_ID pd WHERE pd.id_alt = t.patron_id) as
 -- 1. Primary-Key: Alle Foreign-Keys der Dimensionen, falls Duplikate möglich -> synthetischer Primary Key
 -- 2. die Foreign-Keys, die auf die jeweiligen Dimensionen verweisen
 -- 3. die Measures / numerischen Werte
+
+COMMIT;
+/
